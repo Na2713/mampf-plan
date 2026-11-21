@@ -137,18 +137,24 @@ async function planLaden() {
 
 // ---------- Inhalt einer Mahlzeit (für Karten und Drucktabelle) ----------
 
-function speiseText(daten, id) {
-  const s = daten.speisen.find(x => x.id === id) || { emoji: "❓", name: "?" };
+// Was ein Eintrag zeigt: eine Speise aus der Liste oder einen frei getippten Wunsch
+function eintragSpeise(speisen, e) {
+  if (e.freitext) return { emoji: "✍️", name: e.freitext };
+  return speisen.find(s => s.id === e.speise_id) || { emoji: "❓", name: "?" };
+}
+
+function speiseText(daten, e) {
+  const s = eintragSpeise(daten.speisen, e);
   return `${sicher(s.emoji)} ${sicher(s.name)}`;
 }
 
 function mahlzeitInhalt(m, tagNr, daten) {
   const eintraege = daten.auswahl.filter(e => e.tag === tagNr && e.mahlzeit === m.mahlzeit);
-  const vonPerson = p => eintraege.filter(e => e.person === p).map(e => speiseText(daten, e.speise_id)).join(", ");
+  const vonPerson = p => eintraege.filter(e => e.person === p).map(e => speiseText(daten, e)).join(", ");
 
   if (m.mahlzeit === "abend") {
     const extras = daten.auswahl.filter(e => e.tag === tagNr && e.mahlzeit === "abend_extra");
-    const extraText = extras.map(e => `<b>${PERSONEN_NAME[e.person]}:</b> ${speiseText(daten, e.speise_id)}`).join(" · ");
+    const extraText = extras.map(e => `<b>${PERSONEN_NAME[e.person]}:</b> ${speiseText(daten, e)}`).join(" · ");
     return `<span class="wert">${m.fest}</span>${extras.length ? `<span class="extra">+ ${extraText}</span>` : ""}`;
   }
   if (m.modus === "fest") return `<span class="wert">${m.fest}</span>`;
@@ -157,10 +163,10 @@ function mahlzeitInhalt(m, tagNr, daten) {
   if (m.modus === "wunsch") {
     const entscheidung = eintraege.find(e => e.person === "alle");
     const fuer = `<span class="wer">für ${namenListe(m.personen)}</span>`;
-    if (entscheidung) return `<span class="wert">${speiseText(daten, entscheidung.speise_id)}</span>${fuer}`;
+    if (entscheidung) return `<span class="wert">${speiseText(daten, entscheidung)}</span>${fuer}`;
     const wuensche = eintraege.filter(e => e.art === "wunsch");
     if (!wuensche.length) return `<span class="wert offen">noch offen</span>${fuer}`;
-    const liste = wuensche.map(e => `<b>${PERSONEN_NAME[e.person]}:</b> ${speiseText(daten, e.speise_id)}`).join(" · ");
+    const liste = wuensche.map(e => `<b>${PERSONEN_NAME[e.person]}:</b> ${speiseText(daten, e)}`).join(" · ");
     return `<span class="wert offen">noch nicht entschieden</span><span class="wunsch-liste">Wünsche: ${liste}</span>${fuer}`;
   }
 

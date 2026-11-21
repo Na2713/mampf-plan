@@ -61,10 +61,11 @@ async function ladeFrist() {
 // ---------- Admin (alles mit PIN) ----------
 
 // Etwas festlegen: für eine Person (fehlende Wahl) oder für "alle" (Entscheidung bei Wünschen)
-async function adminFestlegen(woche, tag, mahlzeit, person, speiseId) {
+// freitext: statt einer Speise aus der Liste ein frei getippter Wunsch (nur für "alle")
+async function adminFestlegen(woche, tag, mahlzeit, person, speiseId, freitext = null) {
   const { data, error } = await db.rpc("admin_auswahl_setzen", {
     pin: adminPin(), p_woche: woche, p_tag: tag, p_mahlzeit: mahlzeit,
-    p_person: person, p_speise_id: speiseId, p_art: "festgelegt",
+    p_person: person, p_speise_id: speiseId, p_art: "festgelegt", p_freitext: freitext,
   });
   if (error) throw error;
   return data;

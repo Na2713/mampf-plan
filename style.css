@@ -491,6 +491,15 @@ h2 { font-size: 1.35rem; margin: 28px 0 12px; }
   margin-top: 16px;
 }
 
+/* ===== Freitext-Wunsch ===== */
+.freitext-form { margin-top: 10px; }
+.freitext-form label { display: block; font-weight: 600; margin-bottom: 4px; }
+.freitext-zeile { display: flex; gap: 8px; }
+.freitext-zeile input {
+  flex: 1; min-width: 0; font: inherit; padding: 8px 10px;
+  border: 2px solid var(--umriss); border-radius: 12px; background: var(--karte, #fff);
+}
+
 /* ===== Admin: Woche festlegen ===== */
 .aw-kopf p { margin: 8px 0; }
 .wochen-wahl { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

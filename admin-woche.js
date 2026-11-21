@@ -26,6 +26,7 @@ function zeigeWocheFestlegen() {
   const box = document.getElementById("aw-inhalt");
   box.addEventListener("click", awKlick);
   box.addEventListener("change", awAenderung);
+  box.addEventListener("submit", awFreitext);
   awLaden();
 }
 
@@ -49,14 +50,14 @@ async function awLaden() {
 
 // ---------- Hilfen ----------
 
-function awSpeise(id) {
-  return aw.speisen.find(s => s.id === id) || { name: "?", emoji: "❓" };
+function awSpeise(e) {
+  return eintragSpeise(aw.speisen, e);
 }
 function awName(id) {
   return id === "alle" ? "Alle" : PERSONEN_NAME[id];
 }
 function chipHtml(e, mitName) {
-  const s = awSpeise(e.speise_id);
+  const s = awSpeise(e);
   const wer = mitName ? `<small>${awName(e.person)}:</small> ` : "";
   return `<span class="chip ${e.art === "festgelegt" ? "kueche" : ""}">${wer}${sicher(s.emoji)} ${sicher(s.name)}
     <button class="chip-weg" data-aktion="loeschen" data-id="${e.id}" aria-label="Entfernen">✕</button></span>`;
@@ -162,16 +163,24 @@ function awMahlzeitHtml(tagNr, m) {
     const ohneWunsch = m.personen.filter(p => !wuensche.some(w => w.person === p));
 
     // Gleiche Wünsche zusammenfassen: Pizza – Noah, Mama
+    // (frei getippte Wünsche gelten als gleich, wenn der Text gleich ist – egal ob groß/klein)
     const gruppen = {};
-    for (const w of wuensche) (gruppen[w.speise_id] ||= []).push(w);
-    const wunschListe = Object.entries(gruppen)
-      .sort((a, b) => b[1].length - a[1].length)
-      .map(([speiseId, liste]) => {
-        const s = awSpeise(Number(speiseId));
+    for (const w of wuensche) {
+      const schluessel = w.freitext ? "t:" + w.freitext.trim().toLowerCase() : "s:" + w.speise_id;
+      (gruppen[schluessel] ||= []).push(w);
+    }
+    const wunschListe = Object.values(gruppen)
+      .sort((a, b) => b.length - a.length)
+      .map(liste => {
+        const erster = liste[0];
+        const s = awSpeise(erster);
+        const was = erster.freitext
+          ? `data-text="${sicher(erster.freitext)}"`
+          : `data-speise="${erster.speise_id}"`;
         return `<div class="wunsch-zeile">
           <span>${sicher(s.emoji)} <strong>${sicher(s.name)}</strong>
-            <small>${liste.map(w => awName(w.person)).join(", ")}</small></span>
-          ${entscheidung ? "" : `<button class="knopf-klein" data-aktion="nehmen" ${daten("alle")} data-speise="${speiseId}">✔ Das gibt's</button>`}
+            <small>${liste.map(w => awName(w.person)).join(", ")}${erster.freitext ? " · eigener Wunsch" : ""}</small></span>
+          ${entscheidung ? "" : `<button class="knopf-klein" data-aktion="nehmen" ${daten("alle")} ${was}>✔ Das gibt's</button>`}
         </div>`;
       }).join("");
 
@@ -179,12 +188,20 @@ function awMahlzeitHtml(tagNr, m) {
       <div class="wahl-block ${entscheidung ? "fertig" : ""}">
         <strong>${titel} – Wünsche</strong>
         ${entscheidung
-          ? `<p class="entscheidung">🎉 Es gibt: ${sicher(awSpeise(entscheidung.speise_id).emoji)} ${sicher(awSpeise(entscheidung.speise_id).name)}
+          ? `<p class="entscheidung">🎉 Es gibt: ${sicher(awSpeise(entscheidung).emoji)} ${sicher(awSpeise(entscheidung).name)}
                <button class="chip-weg" data-aktion="loeschen" data-id="${entscheidung.id}" aria-label="Entscheidung zurücknehmen">✕</button></p>`
           : ""}
         ${wunschListe || `<p class="leise">Noch keine Wünsche.</p>`}
         ${ohneWunsch.length ? `<p class="leise">Ohne Wunsch: ${ohneWunsch.map(awName).join(", ")}</p>` : ""}
         ${entscheidung ? "" : speisenSelect(m.kategorie, daten("alle"), "… oder etwas anderes festlegen")}
+        ${entscheidung ? "" : `
+          <form class="freitext-form" ${daten("alle")}>
+            <div class="freitext-zeile">
+              <input name="wunsch" maxlength="60" required autocomplete="off" aria-label="Eigenes Essen festlegen"
+                     placeholder="… oder selbst eintippen">
+              <button class="knopf-klein" type="submit">✔ Festlegen</button>
+            </div>
+          </form>`}
       </div>`;
   }
 
@@ -236,7 +253,9 @@ function awKlick(e) {
     document.getElementById("aw-inhalt").innerHTML = `<p class="mitte leise">Lade die Woche …</p>`;
     awLaden();
   } else if (d.aktion === "nehmen") {
-    awAktion(() => adminFestlegen(aw.woche, Number(d.tag), d.mahlzeit, "alle", Number(d.speise)));
+    awAktion(() => d.text
+      ? adminFestlegen(aw.woche, Number(d.tag), d.mahlzeit, "alle", null, d.text)
+      : adminFestlegen(aw.woche, Number(d.tag), d.mahlzeit, "alle", Number(d.speise)));
   } else if (d.aktion === "loeschen") {
     awAktion(() => adminEintragLoeschen(Number(d.id)));
   } else if (d.aktion === "abschliessen") {
@@ -279,4 +298,15 @@ function awAenderung(e) {
       for (const e of unpassend) await adminEintragLoeschen(e.id);
     });
   }
+}
+
+// Küchenchefin tippt selbst ein, was es gibt
+function awFreitext(e) {
+  e.preventDefault();
+  const form = e.target.closest("form.freitext-form");
+  if (!form) return;
+  const text = form.elements.wunsch.value.trim();
+  if (!text) return;
+  const d = form.dataset;
+  awAktion(() => adminFestlegen(aw.woche, Number(d.tag), d.mahlzeit, d.person, null, text.slice(0, 60)));
 }

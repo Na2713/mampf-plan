@@ -40,6 +40,7 @@ async function zeigePerson(id) {
 
   // Klicks in der Tagesliste (Aussuchen, Speise antippen, entfernen)
   document.getElementById("person-tage").addEventListener("click", personKlick);
+  document.getElementById("person-tage").addEventListener("submit", personFreitext);
 
   await personDatenLaden();
 }
@@ -63,8 +64,8 @@ async function personDatenLaden() {
 
 // ---------- Zeichnen ----------
 
-function speiseVon(id) {
-  return ps.speisen.find(s => s.id === id) || { name: "?", emoji: "❓" };
+function speiseVon(e) {
+  return eintragSpeise(ps.speisen, e);
 }
 
 // Alle Mahlzeiten, bei denen die Person etwas aussuchen darf/durfte
@@ -133,7 +134,7 @@ function stelleHtml({ tagNr, regeln, m }) {
 
   const darfAendern = ps.offen && !entscheidung;
   const chips = eigene.map(e => {
-    const s = speiseVon(e.speise_id);
+    const s = speiseVon(e);
     const vonKueche = e.art === "festgelegt";
     const entfernen = darfAendern && !vonKueche
       ? `<button class="chip-weg" data-aktion="weg" data-id="${e.id}" aria-label="${sicher(s.name)} entfernen">✕</button>` : "";
@@ -159,7 +160,19 @@ function stelleHtml({ tagNr, regeln, m }) {
           <button class="angebot-knopf" data-aktion="waehle" data-stelle="${schluessel}" data-speise="${s.id}">
             <span class="angebot-emoji">${sicher(s.emoji)}</span>${sicher(s.name)}
           </button>`).join("")}</div>`
-      : `<p class="leise">Gerade gibt es hier leider nichts zum Aussuchen.</p>`;
+      : (m.modus === "wunsch" ? "" : `<p class="leise">Gerade gibt es hier leider nichts zum Aussuchen.</p>`);
+    // Bei Wünschen darf man auch frei etwas eintippen
+    if (m.modus === "wunsch") {
+      liste += `
+        <form class="freitext-form" data-stelle="${schluessel}">
+          <label for="frei-${schluessel}">✍️ Oder schreib deinen eigenen Wunsch:</label>
+          <div class="freitext-zeile">
+            <input id="frei-${schluessel}" name="wunsch" maxlength="60" required autocomplete="off"
+                   placeholder="z. B. Lasagne wie bei Oma">
+            <button class="knopf-klein" type="submit">Wünschen</button>
+          </div>
+        </form>`;
+    }
   }
 
   return `
@@ -168,7 +181,7 @@ function stelleHtml({ tagNr, regeln, m }) {
         <span class="symbol">${text.symbol}</span>
         <span><strong>${titel}</strong><small>${hinweis}</small></span>
       </div>
-      ${entscheidung ? `<p class="entscheidung">🎉 Es gibt: ${sicher(speiseVon(entscheidung.speise_id).emoji)} ${sicher(speiseVon(entscheidung.speise_id).name)}</p>` : ""}
+      ${entscheidung ? `<p class="entscheidung">🎉 Es gibt: ${sicher(speiseVon(entscheidung).emoji)} ${sicher(speiseVon(entscheidung).name)}</p>` : ""}
       <div class="chips">${chips}${knopf}</div>
       ${liste}
     </div>`;
@@ -212,4 +225,29 @@ async function personKlick(e) {
     ps.beschaeftigt = false;
   }
   await personDatenLaden(); // neu laden, damit auch Portionen und Wahlen der anderen stimmen
+}
+
+// Eigener Wunsch als Text (nur bei "frisch gekocht")
+async function personFreitext(e) {
+  e.preventDefault();
+  const form = e.target.closest("form.freitext-form");
+  if (!form || ps.beschaeftigt) return;
+  const text = form.elements.wunsch.value.trim();
+  if (!text) return;
+  const [tagNr, mahlzeit] = form.dataset.stelle.split(/-(.+)/);
+
+  ps.beschaeftigt = true;
+  form.querySelector("button").disabled = true;
+  try {
+    await auswahlHinzufuegen({
+      woche: ps.woche, tag: Number(tagNr), mahlzeit, person: ps.person.id,
+      speise_id: null, freitext: text.slice(0, 60), art: "wunsch",
+    });
+    ps.picker = null;
+  } catch (err) {
+    alert(freundlicherFehler(err));
+  } finally {
+    ps.beschaeftigt = false;
+  }
+  await personDatenLaden();
 }

@@ -1,7 +1,7 @@
 // ===== Service Worker: macht die App installierbar und startet sie auch ohne Internet =====
 // WICHTIG: Bei jeder Änderung an den App-Dateien VERSION erhöhen, und neue Dateien in DATEIEN eintragen.
 
-const VERSION = "mampf-plan-v1";
+const VERSION = "mampf-plan-v2";
 
 const DATEIEN = [
   "./",
