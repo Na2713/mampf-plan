@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mampf-Plan – Tests</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #fff6e5; color: #3a2e2a; }
+    h1 { margin-top: 0; }
+    .zusammenfassung { font-size: 1.3rem; font-weight: bold; padding: 12px 16px; border-radius: 12px; border: 3px solid #3a2e2a; }
+    .gruen { background: #e3f4d7; }
+    .rot { background: #ffe1dc; }
+    h2 { font-size: 1.05rem; margin: 20px 0 6px; }
+    ul { margin: 0; padding-left: 0; list-style: none; }
+    li { padding: 2px 0; }
+    .fehler { color: #c62828; font-weight: bold; }
+    .details { display: block; font-weight: normal; font-family: monospace; font-size: 0.85rem; margin-left: 1.6em; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Mampf-Plan – Regel-Tests</h1>
+  <div id="zusammenfassung" class="zusammenfassung">Tests laufen …</div>
+  <div id="ergebnisse"></div>
+
+  <script src="regeln.js"></script>
+  <script>
+    // ---------- Mini-Testwerkzeug ----------
+    let bestanden = 0, fehlgeschlagen = 0, gruppe = null;
+    const ausgabe = document.getElementById("ergebnisse");
+
+    function gruppeStart(titel) {
+      ausgabe.insertAdjacentHTML("beforeend", `<h2>${titel}</h2><ul></ul>`);
+      gruppe = ausgabe.lastElementChild;
+    }
+    function pruefe(name, ist, soll) {
+      const ok = JSON.stringify(ist) === JSON.stringify(soll);
+      ok ? bestanden++ : fehlgeschlagen++;
+      const li = document.createElement("li");
+      if (ok) li.textContent = "✅ " + name;
+      else {
+        li.className = "fehler";
+        li.innerHTML = `❌ ${name}<span class="details">erwartet: ${JSON.stringify(soll)}<br>bekommen: ${JSON.stringify(ist)}</span>`;
+      }
+      gruppe.appendChild(li);
+    }
+
+    // Kurzschreibweisen
+    const tag = (nr, a) => tagesRegeln(nr, a);
+    const m = (nr, mahlzeit, a) => findeMahlzeit(tag(nr, a), mahlzeit);
+    const mahlzeitenNamen = (nr, a) => tag(nr, a).mahlzeiten.map(x => x.mahlzeit);
+
+    // ---------- Normale Woche ----------
+    gruppeStart("📅 Normale Woche");
+    pruefe("Mo: alle Mahlzeiten", mahlzeitenNamen(0), ["fruehstueck", "snack", "mittag", "abend", "abend_extra"]);
+    pruefe("Mo: Frühstück wählen nur Kinder, 1 Sache", [m(0, "fruehstueck").modus, m(0, "fruehstueck").personen, m(0, "fruehstueck").max], ["wahl", ["noah", "amelie"], 1]);
+    pruefe("Mo: Pausensnack Kinder, bis zu 2", [m(0, "snack").personen, m(0, "snack").max], [["noah", "amelie"], 2]);
+    pruefe("Mo: Mittag = Wunsch, frisch gekocht", [m(0, "mittag").modus, m(0, "mittag").kategorie], ["wunsch", "mittag_frisch"]);
+    pruefe("Mo: Mittag ohne Papa", m(0, "mittag").personen, ["mama", "noah", "amelie"]);
+    pruefe("Di: Mittag = freie Wahl aus Mealprep", [m(1, "mittag").modus, m(1, "mittag").kategorie], ["wahl", "mittag_mealprep"]);
+    pruefe("Di: Mittag nur Kinder (ohne Mama und Papa)", m(1, "mittag").personen, ["noah", "amelie"]);
+    pruefe("Mi: Amelie in der Mensa", m(2, "mittag").personen, ["noah"]);
+    pruefe("Do: Amelie in der Mensa", m(3, "mittag").personen, ["noah"]);
+    pruefe("Fr: beide Kinder mittags", m(4, "mittag").personen, ["noah", "amelie"]);
+    pruefe("Sa: Frühstück steht fest: Brötchen", [m(5, "fruehstueck").modus, m(5, "fruehstueck").fest], ["fest", "Brötchen"]);
+    pruefe("So: Frühstück steht fest: Müsli", [m(6, "fruehstueck").modus, m(6, "fruehstueck").fest], ["fest", "Müsli"]);
+    pruefe("Sa: kein Pausensnack", m(5, "snack"), null);
+    pruefe("So: kein Pausensnack", m(6, "snack"), null);
+    pruefe("Sa: Mittag = Wunsch von allen vier", [m(5, "mittag").modus, m(5, "mittag").personen], ["wunsch", ["mama", "papa", "noah", "amelie"]]);
+    pruefe("So: Mittag = Wunsch von allen vier", m(6, "mittag").personen, ["mama", "papa", "noah", "amelie"]);
+    pruefe("Jeden Abend Brotzeit", [0, 1, 2, 3, 4, 5, 6].map(n => m(n, "abend").fest), Array(7).fill("Brotzeit"));
+    pruefe("Abend-Extra nur für Kinder", m(4, "abend_extra").personen, ["noah", "amelie"]);
+
+    // ---------- Ausnahmen ----------
+    gruppeStart("🏖️ Ausnahmen");
+    pruefe("Ferien-Mittwoch: kein Pausensnack", m(2, "snack", { kein_schultag: true }), null);
+    pruefe("Ferien-Mittwoch: Amelie isst mit", m(2, "mittag", { kein_schultag: true }).personen, ["noah", "amelie"]);
+    pruefe("Ferien-Mittwoch: Frühstück wählen bleibt", m(2, "fruehstueck", { kein_schultag: true }).modus, "wahl");
+    pruefe("Do ohne Mensa: Amelie isst mit, Snack bleibt", [m(3, "mittag", { keine_mensa: true }).personen, !!m(3, "snack", { keine_mensa: true })], [["noah", "amelie"], true]);
+    pruefe("Di Papa zu Hause: Papa wählt mit", m(1, "mittag", { papa_zuhause: true }).personen, ["papa", "noah", "amelie"]);
+    pruefe("Mo Papa zu Hause: Papa wünscht mit", m(0, "mittag", { papa_zuhause: true }).personen, ["mama", "papa", "noah", "amelie"]);
+    pruefe("Sa Papa zu Hause: ändert nichts", m(5, "mittag", { papa_zuhause: true }).personen, ["mama", "papa", "noah", "amelie"]);
+    pruefe("Tag entfällt: keine Mahlzeiten", [tag(4, { entfaellt: true }).entfaellt, mahlzeitenNamen(4, { entfaellt: true })], [true, []]);
+    pruefe("Ohne Ausnahmen-Angabe geht es auch", m(2, "mittag", undefined).personen, ["noah"]);
+
+    // ---------- Woche und Frist ----------
+    gruppeStart("⏰ Woche und Frist (Samstag 14 Uhr)");
+    const pw = text => { const w = planungsWoche(new Date(text)); return [isoDatum(w.start), w.offen]; };
+    pruefe("Do 19.11. 10:00 → Woche ab 23.11., offen", pw("2026-11-19T10:00"), ["2026-11-23", true]);
+    pruefe("Sa 21.11. 13:59 → noch offen", pw("2026-11-21T13:59"), ["2026-11-23", true]);
+    pruefe("Sa 21.11. 14:00 → geschlossen", pw("2026-11-21T14:00"), ["2026-11-23", false]);
+    pruefe("So 22.11. → geschlossen", pw("2026-11-22T20:00"), ["2026-11-23", false]);
+    pruefe("Mo 23.11. 0:01 → nächste Woche ab 30.11., offen", pw("2026-11-23T00:01"), ["2026-11-30", true]);
+    pruefe("Jahreswechsel: Mi 30.12. → Woche ab 4.1.", pw("2026-12-30T12:00"), ["2027-01-04", true]);
+    pruefe("Zeitumstellung Okt.: Do 22.10. → Woche ab 26.10.", pw("2026-10-22T12:00"), ["2026-10-26", true]);
+    pruefe("Montag von So 1.11. ist 26.10.", isoDatum(montagVon(new Date(2026, 10, 1))), "2026-10-26");
+    pruefe("Datum hin und zurück", isoDatum(ausIsoDatum("2026-03-29")), "2026-03-29");
+    const fr = { tag: 4, stunde: 18, minute: 30 }; // Freitag 18:30
+    const pwF = text => { const w = planungsWoche(new Date(text), fr); return [isoDatum(w.start), w.offen, uhrzeitText(w.frist), isoDatum(w.frist)]; };
+    pruefe("Eigene Frist Fr 18:30: Fr 20.11. 18:29 offen", pwF("2026-11-20T18:29"), ["2026-11-23", true, "18:30", "2026-11-20"]);
+    pruefe("Eigene Frist Fr 18:30: Fr 20.11. 18:30 geschlossen", pwF("2026-11-20T18:30")[1], false);
+    pruefe("Eigene Frist Fr 18:30: Sa 21.11. geschlossen", pwF("2026-11-21T10:00")[1], false);
+    const so = { tag: 6, stunde: 20, minute: 0 }; // Sonntag 20:00
+    pruefe("Eigene Frist So 20:00: So 22.11. 19:00 noch offen", planungsWoche(new Date("2026-11-22T19:00"), so).offen, true);
+    pruefe("Standard-Frist ist Samstag 14:00", [STANDARD_FRIST.tag, STANDARD_FRIST.stunde, STANDARD_FRIST.minute], [5, 14, 0]);
+    pruefe("Restzeit: 2 Tage 4 Std.", restzeitText((2 * 24 + 4) * 3600000 + 59000), "2 Tage und 4 Stunden");
+    pruefe("Restzeit: 1 Tag 1 Std.", restzeitText(25 * 3600000), "1 Tag und 1 Stunde");
+    pruefe("Restzeit: 3 Std. 12 Min.", restzeitText(3 * 3600000 + 12 * 60000), "3 Stunden und 12 Minuten");
+    pruefe("Restzeit: unter 1 Minute", restzeitText(20000), "1 Minute");
+
+    // ---------- Speisen ----------
+    gruppeStart("🥕 Welche Speisen werden angezeigt?");
+    const speisen = [
+      { id: 1, name: "Nudeln", kategorie: "mittag_mealprep", portionen: null, nicht_moeglich: false, geloescht: false },
+      { id: 2, name: "Lasagne", kategorie: "mittag_mealprep", portionen: 2, nicht_moeglich: false, geloescht: false },
+      { id: 3, name: "Chili", kategorie: "mittag_mealprep", portionen: 0, nicht_moeglich: false, geloescht: false },
+      { id: 4, name: "Suppe", kategorie: "mittag_mealprep", portionen: null, nicht_moeglich: true, geloescht: false },
+      { id: 5, name: "Alt", kategorie: "mittag_mealprep", portionen: null, nicht_moeglich: false, geloescht: true },
+      { id: 6, name: "Apfel", kategorie: "snack", portionen: null, nicht_moeglich: false, geloescht: false },
+    ];
+    pruefe("Mealprep: nur Nudeln und Lasagne", waehlbareSpeisen(speisen, "mittag_mealprep").map(s => s.name), ["Nudeln", "Lasagne"]);
+    pruefe("Snack: Apfel", waehlbareSpeisen(speisen, "snack").map(s => s.name), ["Apfel"]);
+    pruefe("Leere Kategorie", waehlbareSpeisen(speisen, "fruehstueck"), []);
+
+    // ---------- Wie viel darf man wählen? ----------
+    gruppeStart("✋ Wie viel darf man wählen?");
+    const mo = tag(0), mi = tag(2), sa = tag(5);
+    const e = (tagNr, mahlzeit, person) => ({ tag: tagNr, mahlzeit, person, speise_id: 1, art: "wahl" });
+    pruefe("Noah darf Mo Frühstück wählen", kannNochWaehlen([], "noah", mo, "fruehstueck"), true);
+    pruefe("…aber nur eins", kannNochWaehlen([e(0, "fruehstueck", "noah")], "noah", mo, "fruehstueck"), false);
+    pruefe("Amelie ist davon nicht betroffen", kannNochWaehlen([e(0, "fruehstueck", "noah")], "amelie", mo, "fruehstueck"), true);
+    pruefe("Snack: zweiter geht noch", kannNochWaehlen([e(0, "snack", "noah")], "noah", mo, "snack"), true);
+    pruefe("Snack: dritter nicht", kannNochWaehlen([e(0, "snack", "noah"), e(0, "snack", "noah")], "noah", mo, "snack"), false);
+    pruefe("Mama wählt kein Frühstück", kannNochWaehlen([], "mama", mo, "fruehstueck"), false);
+    pruefe("Mama wünscht Mo Mittag", kannNochWaehlen([], "mama", mo, "mittag"), true);
+    pruefe("Papa wünscht Mo kein Mittag", kannNochWaehlen([], "papa", mo, "mittag"), false);
+    pruefe("Papa wünscht Sa Mittag", kannNochWaehlen([], "papa", sa, "mittag"), true);
+    pruefe("Amelie wählt Mi kein Mittag (Mensa)", kannNochWaehlen([], "amelie", mi, "mittag"), false);
+    pruefe("Sa Frühstück: nichts zu wählen", kannNochWaehlen([], "noah", sa, "fruehstueck"), false);
+    const zweiExtras = [e(0, "abend_extra", "noah"), e(3, "abend_extra", "noah")];
+    pruefe("Extras: nach 2 pro Woche ist Schluss", kannNochWaehlen(zweiExtras, "noah", sa, "abend_extra"), false);
+    pruefe("Extras: Amelie hat noch beide", kannNochWaehlen(zweiExtras, "amelie", sa, "abend_extra"), true);
+    pruefe("Extras: nur eins pro Abend", kannNochWaehlen([e(5, "abend_extra", "amelie")], "amelie", sa, "abend_extra"), false);
+    pruefe("Extras gezählt", [extrasGenutzt(zweiExtras, "noah"), extrasGenutzt(zweiExtras, "amelie")], [2, 0]);
+
+    // ---------- Ergebnis ----------
+    const box = document.getElementById("zusammenfassung");
+    box.textContent = fehlgeschlagen === 0
+      ? `🎉 Alle ${bestanden} Tests bestanden!`
+      : `⚠️ ${fehlgeschlagen} von ${bestanden + fehlgeschlagen} Tests fehlgeschlagen`;
+    box.className = "zusammenfassung " + (fehlgeschlagen === 0 ? "gruen" : "rot");
+  </script>
+</body>
+</html>

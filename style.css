@@ -1,0 +1,573 @@
+/* ===== Farben (an einer Stelle, damit man sie leicht ändern kann) ===== */
+:root {
+  --hintergrund: #fff6e5;
+  --karte: #ffffff;
+  --umriss: #3a2e2a;
+  --text: #3a2e2a;
+  --text-leise: #7a6a60;
+  --karotte: #ff8c2b;
+  --blatt: #5cb85c;
+  --blatt-hell: #e3f4d7;
+  --tomate: #ff5a4f;
+  --tomate-hell: #ffe1dc;
+  --aubergine: #8e5bd6;
+  --aubergine-hell: #ece2fa;
+  --karotte-hell: #ffe7d1;
+  --gelb: #ffd23f;
+  --gelb-hell: #fff3c4;
+  --schatten: 4px 4px 0 var(--umriss);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Fredoka", "Segoe UI", system-ui, sans-serif;
+  color: var(--text);
+  background-color: var(--hintergrund);
+  /* kleine Erbsen-Punkte als Hintergrundmuster */
+  background-image: radial-gradient(#ffe2b8 2.5px, transparent 3px);
+  background-size: 34px 34px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+  flex: 1;
+}
+
+h2 { font-size: 1.35rem; margin: 28px 0 12px; }
+
+/* ===== Kopfbereich ===== */
+.kopf {
+  background: var(--karotte);
+  border-bottom: 3px solid var(--umriss);
+  padding: 10px 16px;
+}
+.kopf-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 760px;
+  margin: 0 auto;
+  color: inherit;
+  text-decoration: none;
+}
+.maskottchen { width: 64px; height: 64px; flex-shrink: 0; animation: wackeln 3s ease-in-out infinite; transform-origin: 50% 90%; }
+.maskottchen svg { width: 100%; height: 100%; }
+.kopf-text { display: flex; flex-direction: column; }
+.app-name { font-size: 1.9rem; font-weight: 700; color: #fff; text-shadow: 2px 2px 0 var(--umriss); line-height: 1.1; }
+.untertitel { font-weight: 500; }
+
+@keyframes wackeln {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
+/* ===== Countdown ===== */
+.countdown {
+  margin-top: 20px;
+  background: var(--gelb-hell);
+  border: 3px solid var(--umriss);
+  border-radius: 18px;
+  box-shadow: var(--schatten);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.countdown .uhr { font-size: 2rem; }
+.countdown strong { font-size: 1.15rem; display: block; }
+.countdown span { color: var(--text-leise); }
+.countdown.zu { background: #eee6e0; }
+
+/* ===== Personen-Knöpfe ===== */
+.personen {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (min-width: 600px) {
+  .personen { grid-template-columns: repeat(4, 1fr); }
+}
+.person-knopf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px 10px;
+  border: 3px solid var(--umriss);
+  border-radius: 20px;
+  box-shadow: var(--schatten);
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.person-knopf:hover { transform: translateY(-2px); }
+.person-knopf:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--umriss); }
+.person-knopf .figur { width: 72px; height: 72px; }
+.person-knopf .figur svg { width: 100%; height: 100%; }
+
+.farbe-tomate { background: var(--tomate-hell); }
+.farbe-blatt { background: var(--blatt-hell); }
+.farbe-karotte { background: var(--karotte-hell); }
+.farbe-aubergine { background: var(--aubergine-hell); }
+.farbe-gelb { background: var(--gelb-hell); }
+
+.admin-zeile { margin-top: 14px; text-align: center; }
+.admin-knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 2px solid var(--umriss);
+  border-radius: 999px;
+  background: var(--karte);
+  color: var(--text-leise);
+  font: inherit;
+  text-decoration: none;
+}
+.admin-knopf .figur { width: 28px; height: 28px; }
+
+/* ===== Wochenplan ===== */
+.woche {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 600px) {
+  .woche { grid-template-columns: repeat(2, 1fr); }
+}
+.tag {
+  background: var(--karte);
+  border: 3px solid var(--umriss);
+  border-radius: 18px;
+  box-shadow: var(--schatten);
+  overflow: hidden;
+}
+.tag-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 14px;
+  background: var(--blatt-hell);
+  border-bottom: 3px solid var(--umriss);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.tag-kopf .datum { font-weight: 400; color: var(--text-leise); font-size: 0.95rem; }
+.tag.wochenende .tag-kopf { background: var(--karotte-hell); }
+
+.mahlzeit {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 2px 8px;
+  padding: 8px 14px;
+  border-bottom: 2px dashed #eadfd4;
+}
+.mahlzeit:last-child { border-bottom: none; }
+.mahlzeit .symbol { font-size: 1.3rem; grid-row: span 2; align-self: center; }
+.mahlzeit .art { font-size: 0.85rem; color: var(--text-leise); }
+.mahlzeit .wert { font-weight: 500; }
+.mahlzeit .wert.offen { color: #b5a79b; font-weight: 400; font-style: italic; }
+.mahlzeit .wer { grid-column: 2; font-size: 0.8rem; color: var(--text-leise); }
+.mahlzeit.entfaellt .wert { font-weight: 600; }
+.ausnahmen { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 14px 0; }
+.ausnahme {
+  font-size: 0.75rem;
+  background: var(--gelb-hell);
+  border: 1.5px solid var(--umriss);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.etikett {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 500;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1.5px solid var(--umriss);
+  margin-left: 6px;
+  vertical-align: 1px;
+}
+.etikett.frisch { background: var(--blatt-hell); }
+.etikett.mealprep { background: #dff0ff; }
+
+/* ===== Unterseiten (Person, Admin) ===== */
+.karte {
+  margin-top: 20px;
+  background: var(--karte);
+  border: 3px solid var(--umriss);
+  border-radius: 20px;
+  box-shadow: var(--schatten);
+  padding: 20px;
+  text-align: center;
+}
+.karte .figur.gross { width: 120px; height: 120px; margin: 0 auto; }
+.karte .figur svg { width: 100%; height: 100%; }
+.karte h2 { margin-top: 8px; }
+
+.zurueck {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.knopf {
+  padding: 10px 22px;
+  border: 3px solid var(--umriss);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--umriss);
+  background: var(--blatt);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.knopf:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--umriss); }
+
+.pin-feld {
+  font: inherit;
+  font-size: 1.8rem;
+  letter-spacing: 0.5em;
+  text-align: center;
+  width: 9em;
+  padding: 8px 0 8px 0.5em;
+  border: 3px solid var(--umriss);
+  border-radius: 14px;
+  margin: 12px 0;
+}
+.pin-fehler { color: var(--tomate); font-weight: 600; min-height: 1.4em; }
+.schuetteln { animation: schuetteln 0.4s; }
+@keyframes schuetteln {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.karte.links { text-align: left; }
+.karte h3 { font-size: 1.05rem; margin: 16px 0 6px; }
+.speisen-liste { margin: 0; padding-left: 4px; list-style: none; }
+.speisen-liste li { padding: 3px 0; }
+.leise { color: var(--text-leise); font-style: italic; }
+.ok { font-weight: 600; color: #2e7d32; margin: 0; }
+.fehler { font-weight: 600; color: var(--tomate); margin: 0; }
+
+.mitte { text-align: center; }
+
+/* ===== Admin: Übersicht ===== */
+.admin-kacheln {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 20px;
+}
+.kachel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  background: var(--karotte-hell);
+  border: 3px solid var(--umriss);
+  border-radius: 18px;
+  box-shadow: var(--schatten);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  text-align: center;
+}
+.kachel-symbol { font-size: 2.2rem; }
+.kachel.bald { background: #eee6e0; color: var(--text-leise); box-shadow: none; border-style: dashed; }
+.kachel small { font-weight: 400; }
+
+.knopf-klein {
+  padding: 6px 14px;
+  border: 2px solid var(--umriss);
+  border-radius: 999px;
+  background: var(--karte);
+  font: inherit;
+  cursor: pointer;
+}
+.knopf-reihe { display: flex; gap: 12px; align-items: center; margin-top: 16px; }
+
+/* ===== Admin: Formular ===== */
+.formular label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  font-weight: 600;
+}
+.formular input, .formular select {
+  font: inherit;
+  font-weight: 400;
+  padding: 8px 10px;
+  border: 2px solid var(--umriss);
+  border-radius: 12px;
+  background: #fff;
+  width: 100%;
+}
+.formular small { font-weight: 400; }
+.emoji-zeile { display: flex; align-items: center; gap: 10px; }
+.formular .emoji-feld { width: 4.5em; text-align: center; font-size: 1.4rem; padding: 4px; }
+.emoji-auswahl { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.emoji-wahl {
+  font-size: 1.3rem;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #eadfd4;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+.emoji-wahl:hover { border-color: var(--karotte); }
+
+/* ===== Admin: Speisen-Listen ===== */
+.anzahl {
+  font-size: 0.8rem;
+  background: var(--blatt-hell);
+  border: 1.5px solid var(--umriss);
+  border-radius: 999px;
+  padding: 0 8px;
+  vertical-align: 2px;
+}
+.speise-zeile {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  grid-template-areas:
+    "emoji name portionen"
+    "knoepfe knoepfe knoepfe";
+  align-items: center;
+  gap: 6px 8px;
+  padding: 10px 0;
+  border-bottom: 2px dashed #eadfd4;
+}
+.speise-zeile:last-child { border-bottom: none; }
+.speise-emoji { grid-area: emoji; font-size: 1.6rem; text-align: center; }
+.speise-name { grid-area: name; font-weight: 500; overflow-wrap: anywhere; }
+.speise-name small { display: block; color: var(--tomate); font-weight: 400; font-size: 0.8rem; }
+.portionen { grid-area: portionen; display: flex; align-items: center; gap: 6px; }
+.portionen-zahl { min-width: 1.6em; text-align: center; font-weight: 600; font-size: 1.1rem; }
+.speise-knoepfe { grid-area: knoepfe; display: flex; gap: 6px; justify-content: flex-end; }
+@media (min-width: 600px) {
+  .speise-zeile {
+    grid-template-columns: 34px 1fr auto auto;
+    grid-template-areas: "emoji name portionen knoepfe";
+  }
+}
+.speise-zeile.aus .speise-emoji, .speise-zeile.aus .speise-name { opacity: 0.5; }
+.speise-zeile.aus .speise-name small { opacity: 1; }
+
+.rund {
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--umriss);
+  border-radius: 50%;
+  background: #fff;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.rund:disabled, .schalter:disabled { opacity: 0.4; cursor: default; }
+.schalter {
+  padding: 4px 10px;
+  border: 2px solid var(--umriss);
+  border-radius: 999px;
+  background: var(--blatt-hell);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.schalter.an { background: var(--tomate-hell); }
+
+/* ===== Personen-Seite ===== */
+.person-kopf p { margin: 6px 0 0; }
+.balken {
+  height: 16px;
+  background: #fff;
+  border: 2px solid var(--umriss);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.balken div { height: 100%; background: var(--blatt); transition: width 0.4s; }
+.hinweis-zu { background: #eee6e0; text-align: left; margin-bottom: 14px; }
+#person-tage .woche { margin-top: 20px; }
+
+.wahl-block { padding: 10px 14px; border-bottom: 2px dashed #eadfd4; }
+.wahl-block:last-child { border-bottom: none; }
+.wahl-block.fertig { background: #f6fbf1; }
+.wahl-titel { display: flex; gap: 8px; align-items: center; }
+.wahl-titel .symbol { font-size: 1.4rem; }
+.wahl-titel small { display: block; color: var(--text-leise); font-size: 0.8rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 12px;
+  background: var(--blatt-hell);
+  border: 2px solid var(--umriss);
+  border-radius: 999px;
+  font-weight: 500;
+}
+.chip.kueche { background: var(--gelb-hell); padding-right: 12px; }
+.chip small { font-weight: 400; color: var(--text-leise); }
+.chip-weg {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.aussuchen {
+  padding: 6px 14px;
+  border: 2px dashed var(--umriss);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.angebot {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.angebot-knopf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border: 2px solid var(--umriss);
+  border-radius: 14px;
+  background: var(--karotte-hell);
+  box-shadow: 2px 2px 0 var(--umriss);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.angebot-knopf:active { transform: translate(2px, 2px); box-shadow: none; }
+.angebot-knopf:disabled { opacity: 0.5; }
+.angebot-emoji { font-size: 1.8rem; }
+.entscheidung { margin: 8px 0 0; font-weight: 600; color: #2e7d32; }
+
+.fuss { text-align: center; color: var(--text-leise); padding: 16px; font-size: 0.9rem; }
+
+/* ===== Druckansicht (wird in Stufe 7 ausgebaut) ===== */
+@media print {
+  body { background: #fff; }
+  .countdown, .personen, .admin-zeile, .fuss, .maskottchen { display: none; }
+}
+
+.frist-vorschau {
+  background: var(--gelb-hell);
+  border: 2px solid var(--umriss);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 16px;
+}
+
+/* ===== Admin: Woche festlegen ===== */
+.aw-kopf p { margin: 8px 0; }
+.wochen-wahl { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.wochen-wahl small { display: block; color: var(--text-leise); font-weight: 400; }
+.aw-woche { margin-top: 20px; }
+#aw-inhalt.laedt { opacity: 0.6; pointer-events: none; }
+.ausnahmen-wahl { padding: 6px 14px; border-bottom: 2px dashed #eadfd4; font-size: 0.9rem; }
+.ausnahmen-wahl summary { cursor: pointer; color: var(--text-leise); }
+.haekchen { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+.haekchen input { width: 18px; height: 18px; accent-color: var(--karotte); }
+.wunsch-zeile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+.wunsch-zeile small { display: block; color: var(--text-leise); }
+.person-zeile { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; padding: 4px 0; }
+.person-name { font-weight: 600; }
+.person-zeile.fehlt .person-name { color: var(--tomate); }
+.festlegen {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  border: 2px dashed var(--tomate);
+  border-radius: 10px;
+  background: #fff;
+  max-width: 100%;
+}
+.wahl-block > .festlegen { margin-top: 8px; border-color: var(--umriss); }
+
+/* ===== Startseite: echter Wochenplan ===== */
+.plan-steuerung { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.plan-knoepfe { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.plan-knoepfe .aktiv { background: var(--karotte); color: #fff; font-weight: 600; }
+.plan-titel { text-align: center; margin: 10px 0 14px; }
+.mahlzeit .inhalt { grid-column: 2; display: flex; flex-direction: column; gap: 2px; }
+.personen-wahl { display: flex; flex-direction: column; gap: 2px; }
+.personen-wahl b, .extra b, .wunsch-liste b { font-weight: 600; }
+.mahlzeit .inhalt .wer { font-size: 0.8rem; color: var(--text-leise); }
+.extra, .wunsch-liste { font-size: 0.9rem; }
+.mahlzeit i.offen { color: #b5a79b; }
+.tag.heute { box-shadow: 4px 4px 0 var(--karotte); border-color: var(--karotte); }
+.heute-schild {
+  font-size: 0.75rem;
+  background: var(--karotte);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+.druck-tabelle { display: none; }
+
+/* ===== Druckansicht: eine Seite A4 quer mit Tabelle ===== */
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  body { background: #fff; min-height: 0; display: block; font-size: 10pt; }
+  .kopf, .countdown, .personen, .admin-zeile, .fuss, .plan-steuerung, .plan-titel,
+  #woche, #drucken, main > h2 { display: none !important; }
+  main { max-width: none; padding: 0; }
+  .druck-tabelle { display: block; }
+  .druck-tabelle h2 { margin: 0 0 8px; font-size: 14pt; }
+  .druck-tabelle table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .druck-tabelle th, .druck-tabelle td {
+    border: 1.5px solid var(--umriss);
+    padding: 4px 5px;
+    vertical-align: top;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .druck-tabelle thead th { background: var(--karotte-hell); text-align: center; }
+  .druck-tabelle tbody th { width: 11%; background: var(--blatt-hell); }
+  .druck-tabelle td > span, .druck-tabelle .personen-wahl > span { display: block; }
+  .druck-tabelle .wunsch-liste, .druck-tabelle .extra { font-size: 9pt; margin-top: 2px; }
+  .druck-tabelle .wer { display: none; }
+  .druck-tabelle .entfaellt { text-align: center; vertical-align: middle; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mampf-Plan</title>
+  <meta name="theme-color" content="#ff8c2b">
+  <!-- App-Symbol, Startbildschirm (Android + iPhone) -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Mampf-Plan">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- Schrift "Fredoka": rund und freundlich, passt zum Cartoon-Stil -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Kopfbereich mit Maskottchen -->
+  <header class="kopf">
+    <a href="#" class="kopf-link" aria-label="Zur Startseite">
+      <span class="maskottchen" id="maskottchen"></span>
+      <span class="kopf-text">
+        <span class="app-name">Mampf-Plan</span>
+        <span class="untertitel" id="wochen-titel"></span>
+      </span>
+    </a>
+  </header>
+
+  <!-- Hier zeichnet app.js die jeweilige Seite hinein -->
+  <main id="inhalt"></main>
+
+  <footer class="fuss">Mit 🥕 gemacht für Mama, Papa, Noah &amp; Amelie</footer>
+
+  <!-- Supabase-Bibliothek (fertiger Baustein zum Sprechen mit der Datenbank) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="db.js"></script>
+  <script src="figuren.js"></script>
+  <script src="regeln.js"></script>
+  <script src="person.js"></script>
+  <script src="admin.js"></script>
+  <script src="admin-woche.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
